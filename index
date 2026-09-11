@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ФЭС | Дело №2025-0719</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/fontsource/fonts/roboto-mono@latest/cyrillic-400-normal.css');
+        @import url('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/cyrillic-400-normal.css');
+        @import url('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/cyrillic-700-normal.css');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .mono { font-family: 'Roboto Mono', monospace; }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            animation: fadeIn 0.8s ease;
+        }
+        .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 0.6; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(33.33%); }
+        }
+        @keyframes floatIn {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .progress-container {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 3px; background: #1a1a2a; z-index: 1000;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #c0392b, #e74c3c);
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .chapter-indicator {
+            position: fixed; top: 15px; left: 20px;
+            font-size: 10px; color: #444; letter-spacing: 2px; z-index: 1001;
+        }
+        .transition-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #000; z-index: 5000;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s;
+        }
+        .transition-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .notification {
+            position: fixed; top: 20px; right: 20px;
+            background: #1c1c28; border: 1px solid #333; border-radius: 8px;
+            padding: 15px 20px; z-index: 2000;
+            animation: slideUp 0.3s ease; max-width: 300px; display: none;
+        }
+        .notification.show { display: block; }
+        .notification .notif-title { font-size: 11px; color: #c0392b; letter-spacing: 2px; margin-bottom: 5px; }
+        .notification .notif-text { font-size: 13px; color: #ccc; }
+        
+        .btn {
+            display: inline-block; padding: 12px 30px;
+            background: #c0392b; color: #fff; border: none; border-radius: 4px;
+            font-size: 14px; cursor: pointer; transition: all 0.3s;
+            font-family: 'Roboto', sans-serif; letter-spacing: 1px; margin-top: 20px;
+        }
+        .btn:hover { background: #e74c3c; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(231,76,60,0.3); }
+        .btn-outline {
+            background: transparent; border: 1px solid #555; color: #aaa;
+        }
+        .btn-outline:hover { border-color: #c0392b; color: #fff; background: rgba(192,57,43,0.1); }
+        
+        #screen-loading { background: #000; }
+        .loading-logo { font-size: 14px; color: #666; text-align: center; }
+        .loading-logo .title { font-size: 28px; color: #c0392b; margin-bottom: 10px; letter-spacing: 4px; }
+        .loading-bar-container { width: 300px; height: 3px; background: #222; margin-top: 30px; border-radius: 2px; overflow: hidden; }
+        .loading-bar { height: 100%; background: #c0392b; width: 0%; transition: width 0.3s; }
+        .loading-text { margin-top: 15px; font-size: 11px; color: #444; }
+        
+        .case-file {
+            background: #1c1c28; border: 1px solid #333; border-radius: 8px;
+            padding: 40px; max-width: 600px; width: 100%; position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .case-file::before {
+            content: 'СЕКРЕТНО'; position: absolute; top: 20px; right: 20px;
+            color: #c0392b; font-size: 12px; font-weight: 700;
+            border: 2px solid #c0392b; padding: 4px 12px;
+            transform: rotate(-15deg); letter-spacing: 2px;
+        }
+        .case-header { border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .case-number { font-size: 11px; color: #666; letter-spacing: 3px; margin-bottom: 8px; }
+        .case-title { font-size: 24px; font-weight: 700; color: #fff; }
+        .case-body p { margin-bottom: 12px; line-height: 1.7; color: #aaa; font-size: 14px; }
+        .case-body .highlight { color: #e74c3c; font-weight: 700; }
+        
+        .witness-card {
+            display: flex; align-items: center; gap: 20px;
+            background: #1c1c28; border: 1px solid #333; border-radius: 8px;
+            padding: 20px; margin-bottom: 30px; max-width: 700px; width: 100%;
+        }
+        .witness-avatar {
+            width: 70px; height: 70px; border-radius: 50%; background: #2a2a3a;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; flex-shrink: 0;
+        }
+        .witness-info h3 { font-size: 16px; color: #fff; margin-bottom: 4px; }
+        .witness-info .role { font-size: 12px; color: #888; }
+        
+        .dialogue-box {
+            background: #14141f; border-left: 3px solid #c0392b;
+            padding: 20px; margin-bottom: 15px; border-radius: 0 8px 8px 0;
+            max-width: 700px; width: 100%;
+        }
+        .dialogue-speaker { font-size: 11px; color: #c0392b; letter-spacing: 2px; margin-bottom: 8px; font-weight: 700; }
+        .dialogue-text { font-size: 15px; line-height: 1.7; color: #ccc; }
+        
+        .choices { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-width: 700px; width: 100%; }
+        .choice-btn {
+            padding: 14px 20px; background: #1c1c28; border: 1px solid #333;
+            border-radius: 6px; color: #ccc; font-size: 14px; cursor: pointer;
+            transition: all 0.3s; text-align: left; font-family: 'Roboto', sans-serif;
+        }
+        .choice-btn:hover { border-color: #c0392b; background: rgba(192,57,43,0.1); color: #fff; transform: translateX(5px); }
+        .choice-btn.correct { border-color: #27ae60; background: rgba(39,174,96,0.15); color: #27ae60; pointer-events: none; }
+        .choice-btn.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.1); animation: shake 0.5s; }
+        
+        .evidence-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 15px; margin-bottom: 30px; max-width: 500px; width: 100%;
+        }
+        .evidence-item {
+            aspect-ratio: 1; background: #1c1c28; border: 1px solid #333;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; cursor: pointer; transition: all 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .evidence-item:hover { border-color: #c0392b; transform: scale(1.05); }
+        .evidence-item.found { border-color: #27ae60; background: rgba(39,174,96,0.1); }
+        .evidence-item.found::after {
+            content: '✓'; position: absolute; top: 5px; right: 8px;
+            color: #27ae60; font-size: 14px;
+        }
+        .evidence-counter { text-align: center; color: #888; font-size: 14px; margin-bottom: 20px; }
+        .evidence-counter span { color: #c0392b; font-weight: 700; }
+        
+        .city-map {
+            max-width: 600px; width: 100%;
+            background: #1c1c28; border: 1px solid #333; border-radius: 8px;
+            padding: 30px; text-align: center;
+        }
+        .city-map h3 { color: #fff; font-size: 18px; margin-bottom: 10px; }
+        .city-map .clue { color: #f39c12; font-size: 14px; margin-bottom: 20px; font-style: italic; }
+        .city-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .city-btn {
+            padding: 10px 20px; background: #2a2a3a; border: 1px solid #444;
+            border-radius: 20px; color: #ccc; font-size: 14px; cursor: pointer;
+            transition: all 0.3s; font-family: 'Roboto', sans-serif;
+        }
+        .city-btn:hover { border-color: #c0392b; color: #fff; background: rgba(192,57,43,0.15); }
+        .city-btn.rejected {
+            border-color: #e74c3c; color: #e74c3c; opacity: 0.5;
+            text-decoration: line-through; pointer-events: none;
+        }
+        .city-result {
+            min-height: 60px; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: #888;
+        }
+        
+        .surv-map {
+            background: #111; border: 1px solid #333; border-radius: 8px;
+            height: 350px; position: relative; overflow: hidden;
+            margin-bottom: 20px; max-width: 700px; width: 100%;
+        }
+        .map-grid {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(50,50,50,0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(50,50,50,0.3) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        .map-target {
+            position: absolute; width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .map-target::before {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; border: 2px solid #c0392b;
+            animation: ripple 2s infinite;
+        }
+        .map-target:hover { transform: scale(1.3); }
+        .surv-log {
+            background: #14141f; border: 1px solid #333; border-radius: 6px;
+            padding: 15px; max-height: 150px; overflow-y: auto; max-width: 700px; width: 100%;
+        }
+        .log-entry { font-size: 12px; color: #888; padding: 4px 0; border-bottom: 1px solid #1a1a2a; animation: slideUp 0.3s ease; }
+        .log-entry .time { color: #555; margin-right: 10px; }
+        .log-entry.alert { color: #e74c3c; }
+        .log-entry.success { color: #27ae60; }
+        .rec-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e74c3c; letter-spacing: 2px; }
+        .rec-dot { width: 10px; height: 10px; background: #e74c3c; border-radius: 50%; animation: blink 1s infinite; }
+        
+        .expertise-panel {
+            max-width: 600px; width: 100%; background: #1c1c28;
+            border: 1px solid #333; border-radius: 8px; padding: 30px;
+        }
+        .expertise-header {
+            display: flex; align-items: center; gap: 15px;
+            margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #333;
+        }
+        .expertise-icon { font-size: 28px; }
+        .expertise-header h3 { color: #fff; font-size: 18px; }
+        .lab-tag {
+            font-size: 10px; color: #27ae60; background: rgba(39,174,96,0.1);
+            padding: 3px 8px; border-radius: 3px; margin-left: auto; letter-spacing: 1px;
+        }
+        
+        .memory-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 10px; max-width: 400px; width: 100%; margin: 20px auto;
+        }
+        .memory-card {
+            aspect-ratio: 1; background: #2a2a3a; border: 2px solid #444;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; cursor: pointer; transition: all 0.3s; user-select: none;
+        }
+        .memory-card:hover { border-color: #c0392b; }
+        .memory-card.flipped { background: #1c1c28; border-color: #f39c12; }
+        .memory-card.matched { background: rgba(39,174,96,0.15); border-color: #27ae60; }
+        .memory-card .card-face { display: none; }
+        .memory-card.flipped .card-face, .memory-card.matched .card-face { display: block; }
+        .memory-card .card-back { display: block; font-size: 20px; color: #555; }
+        .memory-card.flipped .card-back, .memory-card.matched .card-back { display: none; }
+        
+        .timeline { max-width: 600px; width: 100%; position: relative; padding-left: 30px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 10px; top: 0; bottom: 0;
+            width: 2px; background: #333;
+        }
+        .timeline-item {
+            position: relative; margin-bottom: 25px; padding: 15px;
+            background: #1c1c28; border: 1px solid #333; border-radius: 8px;
+            animation: floatIn 0.5s ease; cursor: pointer; transition: all 0.3s;
+        }
+        .timeline-item:hover { border-color: #c0392b; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -25px; top: 20px;
+            width: 12px; height: 12px; border-radius: 50%; background: #c0392b;
+            border: 2px solid #0a0a0f;
+        }
+        .timeline-item.resolved::before { background: #27ae60; }
+        .timeline-item .tl-time { font-size: 11px; color: #666; margin-bottom: 5px; }
+        .timeline-item .tl-text { font-size: 14px; color: #ccc; }
+        
+        .code-display {
+            background: #0a0a0f; border: 1px solid #333; border-radius: 6px;
+            padding: 20px; text-align: center; margin-bottom: 20px;
+        }
+        .code-chars { font-size: 32px; letter-spacing: 8px; color: #c0392b; margin-bottom: 10px; }
+        .code-hint { font-size: 12px; color: #666; }
+        .code-input-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        .code-input {
+            width: 45px; height: 50px; background: #0a0a0f; border: 2px solid #444;
+            border-radius: 6px; color: #fff; font-size: 22px; text-align: center;
+            font-family: 'Roboto Mono', monospace; transition: border-color 0.3s;
+        }
+        .code-input:focus { border-color: #c0392b; outline: none; }
+        .code-input.correct-char { border-color: #27ae60; color: #27ae60; }
+        
+        .chat-container { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; width: 100%; max-width: 500px; }
+        .phone-message { padding: 15px; border-radius: 12px; max-width: 400px; animation: floatIn 0.3s ease; font-size: 14px; line-height: 1.5; }
+        .phone-message.incoming { background: #2a2a3a; border-radius: 12px 12px 12px 2px; align-self: flex-start; }
+        .phone-message.outgoing { background: rgba(192,57,43,0.2); border: 1px solid rgba(192,57,43,0.3); border-radius: 12px 12px 2px 12px; align-self: flex-end; }
+        
+        .final-container { max-width: 650px; width: 100%; text-align: center; }
+        .case-closed { font-size: 12px; color: #27ae60; letter-spacing: 4px; margin-bottom: 15px; animation: slideUp 0.5s ease; }
+        .final-title { font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 30px; animation: slideUp 0.5s ease 0.2s both; }
+        .final-letter {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; padding: 30px; margin-bottom: 30px;
+            animation: slideUp 0.5s ease 0.4s both; text-align: left;
+        }
+        .final-letter p { font-size: 16px; line-height: 1.8; color: #ccc; margin-bottom: 15px; }
+        .final-letter .big-text { font-size: 24px; color: #fff; font-weight: 700; margin: 20px 0; text-align: center; }
+        .final-letter .sup-emoji { font-size: 48px; display: block; margin: 20px 0; text-align: center; }
+        .final-invitation { animation: slideUp 0.5s ease 0.6s both; }
+        .final-invitation .question { font-size: 22px; color: #fff; margin-bottom: 25px; font-weight: 700; }
+        .final-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .btn-yes {
+            padding: 16px 40px; background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: #fff; border: none; border-radius: 8px; font-size: 18px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s; font-family: 'Roboto', sans-serif;
+        }
+        .btn-yes:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 30px rgba(39,174,96,0.4); }
+        .btn-no {
+            padding: 16px 40px; background: transparent; border: 1px solid #555;
+            color: #888; border-radius: 8px; font-size: 18px; cursor: pointer;
+            transition: all 0.3s; font-family: 'Roboto', sans-serif;
+        }
+        
+        .celebration-emoji { font-size: 80px; margin-bottom: 20px; }
+        .celebration-text { font-size: 28px; color: #fff; font-weight: 700; margin-bottom: 15px; }
+        .celebration-sub { font-size: 16px; color: #aaa; line-height: 1.8; }
+        .confetti {
+            position: fixed; width: 10px; height: 10px; border-radius: 2px;
+            animation: confettiFall linear forwards; z-index: 9998;
+        }
+        
+        .water-bg {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+            background: linear-gradient(180deg, transparent, rgba(52,152,219,0.1)); overflow: hidden;
+        }
+        .wave {
+            position: absolute; bottom: 0; left: -100%; width: 300%; height: 60px;
+            background: rgba(52,152,219,0.08); border-radius: 50% 50% 0 0;
+            animation: wave 8s linear infinite;
+        }
+        .wave:nth-child(2) { animation-delay: -2s; height: 40px; background: rgba(52,152,219,0.05); }
+        
+        .section-title { font-size: 12px; color: #666; letter-spacing: 3px; margin-bottom: 10px; text-align: center; }
+        .section-subtitle { font-size: 20px; color: #fff; margin-bottom: 20px; text-align: center; }
+        
+        .interrogation-room { max-width: 700px; width: 100%; }
+        
+        .odd-game {
+            max-width: 600px; width: 100%;
+            background: #1c1c28; border: 1px solid #333; border-radius: 8px;
+            padding: 30px;
+        }
+        .odd-round-indicator {
+            text-align: center; font-size: 12px; color: #666;
+            letter-spacing: 2px; margin-bottom: 15px;
+        }
+        .odd-round-indicator span { color: #c0392b; font-weight: 700; }
+        .odd-question {
+            text-align: center; color: #aaa; font-size: 14px;
+            margin-bottom: 20px; font-style: italic;
+        }
+        .odd-items {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 12px; margin-bottom: 20px;
+        }
+        .odd-item {
+            background: #2a2a3a; border: 2px solid #444;
+            border-radius: 10px; padding: 20px 15px;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 8px; cursor: pointer; transition: all 0.3s;
+            text-align: center;
+        }
+        .odd-item:hover {
+            border-color: #c0392b; background: #333;
+            transform: translateY(-3px);
+        }
+        .odd-item .odd-emoji { font-size: 40px; }
+        .odd-item .odd-label { font-size: 13px; color: #ccc; }
+        .odd-item.correct-pick {
+            border-color: #27ae60; background: rgba(39,174,96,0.15);
+            animation: popIn 0.4s ease;
+        }
+        .odd-item.wrong-pick {
+            border-color: #e74c3c; background: rgba(231,76,60,0.1);
+            animation: shake 0.5s;
+        }
+        .odd-feedback {
+            text-align: center; min-height: 40px;
+            font-size: 14px; color: #888;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        @media (max-width: 600px) {
+            .evidence-grid { grid-template-columns: repeat(3, 1fr); }
+            .case-file { padding: 25px; }
+            .final-title { font-size: 24px; }
+            .code-chars { font-size: 24px; letter-spacing: 4px; }
+            .memory-grid { grid-template-columns: repeat(3, 1fr); }
+            .odd-items { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="chapter-indicator" id="chapterIndicator"></div>
+    <div class="transition-overlay" id="transitionOverlay"></div>
+    <div class="notification" id="notification">
+        <div class="notif-title">УВЕДОМЛЕНИЕ</div>
+        <div class="notif-text" id="notifText"></div>
+    </div>
+
+    <!-- 0: LOADING -->
+    <div class="screen active" id="screen-loading">
+        <div class="loading-logo">
+            <div class="title">С Л Е Д</div>
+            <div>Федеральная Экспертная Служба</div>
+            <div style="margin-top:5px; font-size:10px; color:#444;">Система управления делами | Версия 4.7.2 | ДСП</div>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+            <div class="loading-text" id="loadingText">Инициализация системы...</div>
+        </div>
+    </div>
+
+    <!-- 1: BRIEFING -->
+    <div class="screen" id="screen-briefing">
+        <div class="case-file">
+            <div class="case-header">
+                <div class="case-number mono">ДЕЛО № 2025-0719-Х</div>
+                <div class="case-title">Загадка пропавших выходных</div>
+            </div>
+            <div class="case-body">
+                <p>Следователь, у нас необычное дело. Поступил сигнал: кто-то <span class="highlight">запланировал нечто на ближайшие выходные</span>, но скрывает это.</p>
+                <p>Наша задача — выяснить, ЧТО именно планируется, КУДА и КОГО туда приглашают.</p>
+                <p>Все сотрудники ФЭС уже работают. Тихонов анализирует данные, Майский ведёт наблюдение, Антонова готовит лабораторию.</p>
+                <p style="color:#666; font-size:12px; margin-top:20px;">⚠️ Подозреваемый хитёр. Он оставляет подсказки, но маскирует их. Будьте внимательны.</p>
+            </div>
+            <button class="btn" id="btnAcceptCase">Принять дело →</button>
+        </div>
+    </div>
+
+    <!-- 2: TIHONOV -->
+    <div class="screen" id="screen-tihonov">
+        <div class="interrogation-room">
+            <div class="witness-card">
+                <div class="witness-avatar">💻</div>
+                <div class="witness-info">
+                    <h3>Тихонов Иван Фёдорович</h3>
+                    <div class="role">Программист, руководитель компьютерного отдела ФЭС</div>
+                </div>
+            </div>
+            <div class="dialogue-box">
+                <div class="dialogue-speaker">ТИХОНОВ И.Ф.</div>
+                <div class="dialogue-text" id="tihonovDialogue">
+                    «Смотри, что я нашёл. Подозреваемый оставил цифровые следы. Я восстановил удалённые поисковые запросы из его браузера.»
+                </div>
+            </div>
+            <div class="dialogue-box" style="border-left-color: #f39c12;">
+                <div class="dialogue-speaker" style="color: #f39c12;">ТИХОНОВ ПРОДОЛЖАЕТ</div>
+                <div class="dialogue-text">«Первый запрос: "как подготовиться к выезду на природу". Второй: "что взять с собой на воду". Третий... зашифрован. Но я понял — речь про какое-то место в Подмосковье.»</div>
+            </div>
+            <div class="choices" id="tihonovChoices">
+                <button class="choice-btn" onclick="tihonovChoice(0)">«Может, он едет на рыбалку?»</button>
+                <button class="choice-btn" onclick="tihonovChoice(1)">«А что именно он гуглил про воду?»</button>
+                <button class="choice-btn" onclick="tihonovChoice(2)">«Наверное, в деревню к бабушке»</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3: EVIDENCE -->
+    <div class="screen" id="screen-evidence">
+        <div style="max-width:600px; width:100%;">
+            <div class="section-title mono">АНАЛИЗ ВЕЩЕСТВЕННЫХ УЛИК</div>
+            <div class="section-subtitle">Найдите предметы, которые подозреваемый планирует взять с собой</div>
+            <p style="color:#888; font-size:13px; margin-bottom:20px; text-align:center;">Нажмите на все предметы, которые подходят для выезда на природу к воде. Осторожно — есть ложные следы!</p>
+            <div class="evidence-grid" id="evidenceGrid"></div>
+            <div class="evidence-counter">Найдено улик: <span id="evidenceCount">0</span> / <span id="evidenceTotal">0</span></div>
+            <div style="text-align:center;">
+                <button class="btn btn-outline" id="evidenceSubmitBtn" style="display:none;">Передать на экспертизу →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4: CITY GUESS #1 -->
+    <div class="screen" id="screen-city1">
+        <div class="city-map">
+            <div class="section-title mono">ОПРЕДЕЛЕНИЕ МЕСТА • ЭТАП 1</div>
+            <h3>Куда же его занесло?</h3>
+            <div class="clue" id="city1Clue">Подсказка от Тихонова: «Он искал что-то связанное с древним городом у Оки...»</div>
+            <p style="color:#888; font-size:13px; margin-bottom:15px;">Выберите город, куда, по вашему мнению, планируется поездка:</p>
+            <div class="city-buttons" id="city1Buttons"></div>
+            <div class="city-result" id="city1Result">Выберите вариант...</div>
+            <button class="btn btn-outline" id="city1Next" style="display:none;">Далее →</button>
+        </div>
+    </div>
+
+    <!-- 5: SURVEILLANCE -->
+    <div class="screen" id="screen-surveillance">
+        <div style="max-width:700px; width:100%;">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <div class="rec-indicator"><div class="rec-dot"></div> REC</div>
+                <span class="mono" style="font-size:11px; color:#555;" id="survTime">00:00:00</span>
+                <span style="margin-left:auto; font-size:12px; color:#666;">Наружное наблюдение • Майский С.М.</span>
+            </div>
+            <div class="dialogue-box" style="margin-bottom:15px;">
+                <div class="dialogue-speaker">МАЙСКИЙ С.М.</div>
+                <div class="dialogue-text">«Я засёк подозрительную активность. Подозреваемый общается с кем-то, планирует маршрут. На карте видны три точки — найди их все.»</div>
+            </div>
+            <div class="surv-map" id="survMap">
+                <div class="map-grid"></div>
+            </div>
+            <div class="surv-log" id="survLog"></div>
+            <p style="color:#666; font-size:12px; margin-top:10px; text-align:center;">Найдите 3 подозрительные точки на карте</p>
+        </div>
+    </div>
+
+    <!-- 6: ANTONOVA — ODD ONE OUT -->
+    <div class="screen" id="screen-antonova">
+        <div class="odd-game">
+            <div class="expertise-header">
+                <div class="expertise-icon">🔬</div>
+                <h3>Экспертиза рюкзака</h3>
+                <div class="lab-tag mono">АНТОНОВА В.В.</div>
+            </div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:20px; line-height:1.6;">
+                «Я разобрала содержимое рюкзака подозреваемого. В каждом наборе один предмет — <strong style="color:#f39c12;">лишний</strong>. Найди его! Он не подходит к остальным.»
+            </div>
+            <div class="odd-round-indicator">РАУНД <span id="oddRound">1</span> / <span id="oddTotal">4</span></div>
+            <div class="odd-question" id="oddQuestion"></div>
+            <div class="odd-items" id="oddItems"></div>
+            <div class="odd-feedback" id="oddFeedback"></div>
+        </div>
+    </div>
+
+    <!-- 7: CITY GUESS #2 -->
+    <div class="screen" id="screen-city2">
+        <div class="city-map">
+            <div class="section-title mono">ОПРЕДЕЛЕНИЕ МЕСТА • ЭТАП 2</div>
+            <h3>Уточняем локацию</h3>
+            <div class="clue" id="city2Clue">Подсказка от Майского: «Маршрут ведёт на север Подмосковья. Там красивая природа, канал, водохранилище...»</div>
+            <p style="color:#888; font-size:13px; margin-bottom:15px;">Куда же он направляется?</p>
+            <div class="city-buttons" id="city2Buttons"></div>
+            <div class="city-result" id="city2Result">Выберите вариант...</div>
+            <button class="btn btn-outline" id="city2Next" style="display:none;">Далее →</button>
+        </div>
+    </div>
+
+    <!-- 8: CHAT -->
+    <div class="screen" id="screen-chat">
+        <div class="interrogation-room">
+            <div class="witness-card">
+                <div class="witness-avatar">👩‍💼</div>
+                <div class="witness-info">
+                    <h3>Гордеева Екатерина</h3>
+                    <div class="role">Майор милиции, старший оперуполномоченный ФЭС</div>
+                </div>
+            </div>
+            <div class="dialogue-box" style="margin-bottom:15px;">
+                <div class="dialogue-speaker">ГОРДЕЕВА Е.</div>
+                <div class="dialogue-text">«Следователь, я вышла на источник. У меня есть информация, но она... странная. Переписываюсь с ним через мессенджер под прикрытием.»</div>
+            </div>
+            <div class="chat-container" id="chatContainer"></div>
+            <div class="choices" id="chatChoices" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 9: MEMORY -->
+    <div class="screen" id="screen-memory">
+        <div class="expertise-panel">
+            <div class="expertise-header">
+                <div class="expertise-icon">🔫</div>
+                <h3>Баллистическая экспертиза</h3>
+                <div class="lab-tag mono">БЕЛАЯ Т.М.</div>
+            </div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:15px;">
+                «Я нашла зашифрованные карточки. На них — ключевые слова из показаний. Найдите пары, чтобы раскрыть послание.»
+            </div>
+            <p style="color:#888; font-size:13px; text-align:center; margin-bottom:10px;">Найдите все пары одинаковых карточек</p>
+            <div class="memory-grid" id="memoryGrid"></div>
+            <p style="color:#666; font-size:12px; text-align:center;">Пар найдено: <span id="memoryPairs">0</span> / <span id="memoryTotal">0</span></p>
+        </div>
+    </div>
+
+    <!-- 10: CITY GUESS #3 -->
+    <div class="screen" id="screen-city3">
+        <div class="city-map">
+            <div class="section-title mono">ОПРЕДЕЛЕНИЕ МЕСТА • ЭТАП 3</div>
+            <h3>Финальная версия</h3>
+            <div class="clue" id="city3Clue">Все улики собраны. Гордеева сообщает: «Он точно куда-то едет в выходные. Говорит, будет "незабываемо". Но город не называет...»</div>
+            <p style="color:#888; font-size:13px; margin-bottom:15px;">Последняя попытка. Какой город?</p>
+            <div class="city-buttons" id="city3Buttons"></div>
+            <div class="city-result" id="city3Result">Выберите вариант...</div>
+            <button class="btn btn-outline" id="city3Next" style="display:none;">Перейти к разгадке →</button>
+        </div>
+    </div>
+
+    <!-- 11: CODE BREAK -->
+    <div class="screen" id="screen-codebreak">
+        <div class="expertise-panel">
+            <div class="expertise-header">
+                <div class="expertise-icon">🔐</div>
+                <h3>Дешифровка послания</h3>
+                <div class="lab-tag mono" style="color:#f39c12; background:rgba(243,156,18,0.1);">ТИХОНОВ</div>
+            </div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:20px;">
+                «Я взломал его последний файл. Там послание, но оно зашифровано. Ключ — то, что объединяет все улики. Введи кодовое слово.»
+            </div>
+            <div class="code-display">
+                <div class="code-chars mono" id="codeDisplay">? ? ? ? ?</div>
+                <div class="code-hint">Подсказка: 5 букв. То, что будет в выходные. Подсказка от Рогозиной: «Это не город. Это активное времяпрепровождение у воды.»</div>
+            </div>
+            <div class="code-input-row" id="codeInputRow">
+                <input class="code-input" maxlength="1" data-index="0">
+                <input class="code-input" maxlength="1" data-index="1">
+                <input class="code-input" maxlength="1" data-index="2">
+                <input class="code-input" maxlength="1" data-index="3">
+                <input class="code-input" maxlength="1" data-index="4">
+            </div>
+            <div style="text-align:center;">
+                <button class="btn" id="codeCheckBtn">Дешифровать</button>
+            </div>
+            <p style="color:#555; font-size:11px; margin-top:15px; text-align:center;" id="codeHint2">Подсказка: 3 английские буквы, означающие "стоять на доске на воде"... Начинается на S</p>
+        </div>
+    </div>
+
+    <!-- 12: TIMELINE -->
+    <div class="screen" id="screen-timeline">
+        <div style="max-width:600px; width:100%;">
+            <div class="section-title mono">СБОРКА ДЕЛА</div>
+            <div class="section-subtitle">Рогозина анализирует все данные</div>
+            <div class="dialogue-box" style="margin-bottom:25px;">
+                <div class="dialogue-speaker">РОГОЗИНА Г.Н.</div>
+                <div class="dialogue-text">«Следователь, давайте соберём всё воедино. Нажмите на каждый пункт, чтобы вспомнить ход расследования.»</div>
+            </div>
+            <div class="timeline" id="timeline"></div>
+            <div style="text-align:center; margin-top:20px;">
+                <button class="btn" id="timelineNext" style="display:none;">Раскрыть дело →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13: FINAL -->
+    <div class="screen" id="screen-final">
+        <div class="final-container">
+            <div class="case-closed mono">■ ДЕЛО РАСКРЫТО ■</div>
+            <div class="final-title" id="finalTitle">Подождите...</div>
+            <div class="final-letter" id="finalLetter" style="display:none;">
+                <p>Следователь, вы проделали отличную работу. Все улики собраны, все города угаданы (точнее, НЕ угаданы).</p>
+                <p>И вот тут — <strong style="color:#e74c3c;">НЕОЖИДАННЫЙ ПОВОРОТ</strong>:</p>
+                <p class="big-text">🏄‍♀️ Это НЕ поездка в город! 🏄‍♂️</p>
+                <p>Все эти «подсказки про города» были отвлекающим манёвром. На самом деле...</p>
+                <span class="sup-emoji">🛶🌊</span>
+                <p class="big-text">В эти выходные — SUP-СПЛАВ!</p>
+                <p>Всё это «расследование» — одно большое приглашение. Тихонов, Майский, Рогозина — все знали. Дело было в том, чтобы <strong>пригласить тебя</strong> покататься на сапах!</p>
+                <p>Река, солнце, закаты на воде, весёлая компания и отличные эмоции — всё это ждёт нас!</p>
+            </div>
+            <div class="final-invitation" id="finalInvitation" style="display:none;">
+                <div class="question">Ну что, поедешь со мной на SUP-сплав в эти выходные?</div>
+                <div class="final-buttons">
+                    <button class="btn-yes" id="btnYes">Да, конечно! 🎉</button>
+                    <button class="btn-no" id="btnNo">Не знаю...</button>
+                </div>
+            </div>
+        </div>
+        <div class="water-bg">
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+    </div>
+
+    <!-- 14: CELEBRATION -->
+    <div class="screen" id="screen-celebration">
+        <div style="text-align:center; animation: slideUp 0.8s ease;">
+            <div class="celebration-emoji">🎉🛶🎉</div>
+            <div class="celebration-text">Отлично! Выходные будут незабываемыми!</div>
+            <div class="celebration-sub">
+                <p>Дело №2025-0719-Х закрыто.</p>
+                <p style="margin-top:10px;">Полковник Рогозина довольна вашей работой 😄</p>
+                <p style="margin-top:10px;">Тихонов уже пакует доски 🏄</p>
+                <p style="margin-top:10px;">Майский прокладывает маршрут по реке 🗺️</p>
+                <p style="margin-top:20px; color:#27ae60; font-size:20px;">Увидимся на воде! 🌊🏄‍♀️</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GLOBAL STATE =====
+        var currentScreen = 'screen-loading';
+        var noClickCount = 0;
+        var survTargetsFound = 0;
+        var evidenceFound = 0;
+        var survTimerInterval;
+        var memoryFlipped = [];
+        var memoryMatched = 0;
+        var memoryLocked = false;
+        var timelineResolved = 0;
+        
+        // Odd one out state
+        var oddRound = 0;
+        var oddRounds = [
+            {
+                question: 'Что НЕ нужно брать на сплав по реке?',
+                items: [
+                    { emoji: '🦺', label: 'Спасательный жилет', isOdd: false },
+                    { emoji: '🧴', label: 'Крем от загара', isOdd: false },
+                    { emoji: '🎩', label: 'Шляпа-цилиндр', isOdd: true },
+                    { emoji: '💧', label: 'Бутылка воды', isOdd: false }
+                ],
+                feedback: 'Верно! Цилиндр на сплав не берут 😄'
+            },
+            {
+                question: 'Какой предмет НЕ связан с водным отдыхом?',
+                items: [
+                    { emoji: '🛶', label: 'Весло', isOdd: false },
+                    { emoji: '🏄', label: 'Доска', isOdd: false },
+                    { emoji: '⛷️', label: 'Лыжи', isOdd: true },
+                    { emoji: '🌊', label: 'Река', isOdd: false }
+                ],
+                feedback: 'Точно! Лыжи — это зимний спорт ❄️'
+            },
+            {
+                question: 'Что из этого НЕ пригодится на воде?',
+                items: [
+                    { emoji: '🧢', label: 'Кепка от солнца', isOdd: false },
+                    { emoji: '🩴', label: 'Сандалии', isOdd: false },
+                    { emoji: '📱', label: 'Зонт от дождя', isOdd: true },
+                    { emoji: '🕶️', label: 'Очки', isOdd: false }
+                ],
+                feedback: 'Ага! Зонт на доске не удержишь 🌂'
+            },
+            {
+                question: 'Финальный вопрос: что НЕ входит в набор для SUP?',
+                items: [
+                    { emoji: '🏄‍♀️', label: 'SUP-доска', isOdd: false },
+                    { emoji: '🛟', label: 'Гермомешок', isOdd: false },
+                    { emoji: '🎣', label: 'Удочка', isOdd: true },
+                    { emoji: '🛶', label: 'Весло', isOdd: false }
+                ],
+                feedback: 'Верно! Это сплав, а не рыбалка 🎣'
+            }
+        ];
+        
+        var screens = [
+            'screen-loading','screen-briefing','screen-tihonov','screen-evidence',
+            'screen-city1','screen-surveillance','screen-antonova','screen-city2',
+            'screen-chat','screen-memory','screen-city3','screen-codebreak',
+            'screen-timeline','screen-final','screen-celebration'
+        ];
+        
+        var chapters = {
+            'screen-loading': '',
+            'screen-briefing': 'ГЛАВА 1 • БРИФИНГ У РОГОЗИНОЙ',
+            'screen-tihonov': 'ГЛАВА 2 • ДОПРОС ТИХОНОВА',
+            'screen-evidence': 'ГЛАВА 3 • ВЕЩЕСТВЕННЫЕ УЛИКИ',
+            'screen-city1': 'ГЛАВА 4 • ВЕРСИЯ: ГОРОД №1',
+            'screen-surveillance': 'ГЛАВА 5 • НАРУЖНОЕ НАБЛЮДЕНИЕ',
+            'screen-antonova': 'ГЛАВА 6 • ЭКСПЕРТИЗА АНТОНОВОЙ',
+            'screen-city2': 'ГЛАВА 7 • ВЕРСИЯ: ГОРОД №2',
+            'screen-chat': 'ГЛАВА 8 • ПЕРЕХВАТ СООБЩЕНИЙ',
+            'screen-memory': 'ГЛАВА 9 • ШИФР БЕЛОЙ',
+            'screen-city3': 'ГЛАВА 10 • ВЕРСИЯ: ГОРОД №3',
+            'screen-codebreak': 'ГЛАВА 11 • ВЗЛОМ ШИФРА',
+            'screen-timeline': 'ГЛАВА 12 • СБОРКА ДЕЛА',
+            'screen-final': 'ФИНАЛ • РАСКРЫТИЕ',
+            'screen-celebration': '■ ДЕЛО ЗАКРЫТО ■'
+        };
+        
+        // ===== LOADING =====
+        var loadingMessages = [
+            'Инициализация системы ФЭС...',
+            'Загрузка базы данных дел...',
+            'Подключение к серверу МВД...',
+            'Проверка допуска следователя...',
+            'Загрузка материалов дела №2025-0719...',
+            'Шифрование канала связи...',
+            'Подготовка допросных листов...',
+            'Связь с Тихоновым... OK',
+            'Связь с Майским... OK',
+            'Связь с Антоновой... OK',
+            'Все системы готовы.'
+        ];
+        
+        function startLoading() {
+            var progress = 0;
+            var msgIndex = 0;
+            var bar = document.getElementById('loadingBar');
+            var text = document.getElementById('loadingText');
+            
+            var interval = setInterval(function() {
+                progress += Math.random() * 12 + 3;
+                if (progress > 100) progress = 100;
+                bar.style.width = progress + '%';
+                
+                var msgThreshold = (msgIndex + 1) * (100 / loadingMessages.length);
+                if (progress > msgThreshold && msgIndex < loadingMessages.length - 1) {
+                    msgIndex++;
+                    text.textContent = loadingMessages[msgIndex];
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    text.textContent = 'Добро пожаловать, следователь.';
+                    setTimeout(function() { goToScreen('screen-briefing'); }, 1200);
+                }
+            }, 350);
+        }
+        
+        // ===== NAVIGATION =====
+        function goToScreen(screenId) {
+            var overlay = document.getElementById('transitionOverlay');
+            overlay.classList.add('active');
+            
+            setTimeout(function() {
+                document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+                document.getElementById(screenId).classList.add('active');
+                currentScreen = screenId;
+                updateProgress();
+                updateChapter();
+                
+                setTimeout(function() {
+                    overlay.classList.remove('active');
+                    initScreen(screenId);
+                }, 400);
+            }, 500);
+        }
+        
+        function updateProgress() {
+            var idx = screens.indexOf(currentScreen);
+            var pct = (idx / (screens.length - 1)) * 100;
+            document.getElementById('progressBar').style.width = pct + '%';
+        }
+        
+        function updateChapter() {
+            document.getElementById('chapterIndicator').textContent = chapters[currentScreen] || '';
+        }
+        
+        function showNotification(title, text, duration) {
+            duration = duration || 3000;
+            var notif = document.getElementById('notification');
+            notif.querySelector('.notif-title').textContent = title;
+            notif.querySelector('.notif-text').textContent = text;
+            notif.classList.add('show');
+            setTimeout(function() { notif.classList.remove('show'); }, duration);
+        }
+        
+        // ===== SCREEN INIT =====
+        function initScreen(screenId) {
+            switch(screenId) {
+                case 'screen-briefing': initBriefing(); break;
+                case 'screen-evidence': initEvidence(); break;
+                case 'screen-city1': initCity1(); break;
+                case 'screen-surveillance': initSurveillance(); break;
+                case 'screen-antonova': initOddOneOut(); break;
+                case 'screen-city2': initCity2(); break;
+                case 'screen-chat': initChat(); break;
+                case 'screen-memory': initMemory(); break;
+                case 'screen-city3': initCity3(); break;
+                case 'screen-codebreak': initCodeBreak(); break;
+                case 'screen-timeline': initTimeline(); break;
+                case 'screen-final': initFinal(); break;
+            }
+        }
+        
+        // ===== 1: BRIEFING =====
+        function initBriefing() {
+            document.getElementById('btnAcceptCase').onclick = function() {
+                showNotification('ДЕЛО ПРИНЯТО', 'Приступайте к расследованию. Начните с допроса Тихонова.');
+                setTimeout(function() { goToScreen('screen-tihonov'); }, 1500);
+            };
+        }
+        
+        // ===== 2: TIHONOV =====
+        function tihonovChoice(idx) {
+            var choices = document.querySelectorAll('#tihonovChoices .choice-btn');
+            var dialogue = document.getElementById('tihonovDialogue');
+            
+            if (idx === 1) {
+                // Correct answer
+                choices.forEach(function(c) { c.style.pointerEvents = 'none'; });
+                choices[1].classList.add('correct');
+                setTimeout(function() {
+                    dialogue.innerHTML = '«Конкретно? Он искал: "SUP-доски аренда", "как стоять на доске на воде", "лучшие места для сплава в Подмосковье". А ещё — "что надеть на сплав". Но города он не искал! Странно, да?"»';
+                    showNotification('ВАЖНАЯ УЛИКА', 'Подозреваемый ищет что-то связанное с водой и досками. Но город не указан!');
+                    setTimeout(function() { goToScreen('screen-evidence'); }, 3500);
+                }, 800);
+            } else {
+                // Wrong answer - only disable the clicked button temporarily
+                choices[idx].classList.add('wrong');
+                choices[idx].style.pointerEvents = 'none';
+                
+                setTimeout(function() {
+                    choices[idx].classList.remove('wrong');
+                    choices[idx].style.pointerEvents = 'auto';
+                    if (idx === 0) {
+                        dialogue.innerHTML = '«Нет, рыбалка тут ни при чём. Он не искал ни удочки, ни наживку. Тут что-то другое... Более активное. Посмотри внимательнее на его запросы.»';
+                    } else {
+                        dialogue.innerHTML = '«К бабушке? Нет, он не искал ничего про деревню. Тут явно выезд на природу, но не к родственникам. Подумай — что он гуглил про воду?»';
+                    }
+                }, 1000);
+            }
+        }
+        
+        // ===== 3: EVIDENCE =====
+        var evidenceItems = [
+            { emoji: '🧴', isEvidence: true, name: 'Крем от загара' },
+            { emoji: '🎣', isEvidence: false, name: 'Удочка' },
+            { emoji: '💧', isEvidence: true, name: 'Вода питьевая' },
+            { emoji: '🔍', isEvidence: false, name: 'Лупа' },
+            { emoji: '🦺', isEvidence: true, name: 'Спасательный жилет' },
+            { emoji: '📱', isEvidence: false, name: 'Телефон' },
+            { emoji: '🧢', isEvidence: true, name: 'Кепка от солнца' },
+            { emoji: '📋', isEvidence: false, name: 'Документы' },
+            { emoji: '🗺️', isEvidence: true, name: 'Карта маршрута' },
+            { emoji: '🔑', isEvidence: false, name: 'Ключи' },
+            { emoji: '🩴', isEvidence: true, name: 'Сандалии (мокрые!)' },
+            { emoji: '🎵', isEvidence: false, name: 'Колонка' },
+        ];
+        
+        var evidenceTotal = 0;
+        
+        function initEvidence() {
+            var grid = document.getElementById('evidenceGrid');
+            grid.innerHTML = '';
+            evidenceFound = 0;
+            evidenceTotal = evidenceItems.filter(function(i) { return i.isEvidence; }).length;
+            document.getElementById('evidenceTotal').textContent = evidenceTotal;
+            document.getElementById('evidenceCount').textContent = '0';
+            document.getElementById('evidenceSubmitBtn').style.display = 'none';
+            
+            var shuffled = evidenceItems.slice().sort(function() { return Math.random() - 0.5; });
+            
+            shuffled.forEach(function(item) {
+                var div = document.createElement('div');
+                div.className = 'evidence-item';
+                div.textContent = item.emoji;
+                div.title = item.name;
+                div.setAttribute('data-isevidence', item.isEvidence);
+                div.onclick = function() { clickEvidence(div, item); };
+                grid.appendChild(div);
+            });
+            
+            document.getElementById('evidenceSubmitBtn').onclick = function() {
+                showNotification('ЭКСПЕРТИЗА', 'Улики переданы Антоновой для анализа...');
+                setTimeout(function() { goToScreen('screen-city1'); }, 1500);
+            };
+        }
+        
+        function clickEvidence(el, item) {
+            if (el.classList.contains('found')) return;
+            
+            if (item.isEvidence) {
+                el.classList.add('found');
+                evidenceFound++;
+                document.getElementById('evidenceCount').textContent = evidenceFound;
+                showNotification('УЛИКА НАЙДЕНА', item.name + ' — это важно для дела!');
+                
+                if (evidenceFound >= evidenceTotal) {
+                    document.getElementById('evidenceSubmitBtn').style.display = 'inline-block';
+                }
+            } else {
+                el.style.animation = 'shake 0.5s';
+                setTimeout(function() { el.style.animation = ''; }, 500);
+                showNotification('ЛОЖНЫЙ СЛЕД', item.name + ' — не относится к делу.', 2000);
+            }
+        }
+        
+        // ===== 4: CITY GUESS #1 =====
+        function initCity1() {
+            var cities = ['Коломна', 'Серпухов', 'Зарайск', 'Кашира', 'Ступино'];
+            var container = document.getElementById('city1Buttons');
+            container.innerHTML = '';
+            document.getElementById('city1Result').textContent = 'Выберите вариант...';
+            document.getElementById('city1Next').style.display = 'none';
+            
+            var rejected = 0;
+            
+            cities.forEach(function(city) {
+                var btn = document.createElement('button');
+                btn.className = 'city-btn';
+                btn.textContent = city;
+                btn.onclick = function() {
+                    btn.classList.add('rejected');
+                    rejected++;
+                    
+                    var responses = {
+                        'Коломна': 'Нет! Хотя Коломна красивая, но не туда. Подсказка: это НЕ древний город.',
+                        'Серпухов': 'Не-а! Серпухов — не наш вариант. Слишком далеко на юг.',
+                        'Зарайск': 'Мимо! Зарайск хорош, но подозреваемый едет не туда.',
+                        'Кашира': 'Нет! Кашира — не тот город. Подумай про воду и активный отдых.',
+                        'Ступино': 'Тоже нет! Ступино — не наш случай.'
+                    };
+                    
+                    document.getElementById('city1Result').innerHTML = '<span style="color:#e74c3c;">❌ ' + responses[city] + '</span>';
+                    
+                    if (rejected >= 3) {
+                        setTimeout(function() {
+                            document.getElementById('city1Result').innerHTML = '<span style="color:#f39c12;">🤔 Хм... Может, это вообще не город? Ладно, идём дальше, соберём больше улик.</span>';
+                            document.getElementById('city1Next').style.display = 'inline-block';
+                        }, 1500);
+                    }
+                };
+                container.appendChild(btn);
+            });
+            
+            document.getElementById('city1Next').onclick = function() {
+                goToScreen('screen-surveillance');
+            };
+        }
+        
+        // ===== 5: SURVEILLANCE =====
+        function initSurveillance() {
+            var map = document.getElementById('survMap');
+            map.querySelectorAll('.map-target').forEach(function(el) { el.remove(); });
+            map.querySelectorAll('[style*="pointer-events:none"]').forEach(function(el) { 
+                if (el.textContent && el.textContent.length < 20) el.remove(); 
+            });
+            survTargetsFound = 0;
+            
+            var labels = [
+                { text: 'База отдыха', x: 80, y: 40 },
+                { text: 'Лесополоса', x: 500, y: 30 },
+                { text: 'Парковка', x: 50, y: 280 },
+                { text: 'Река', x: 300, y: 150 },
+                { text: 'Прокат', x: 450, y: 250 },
+            ];
+            labels.forEach(function(l) {
+                var lbl = document.createElement('div');
+                lbl.style.cssText = 'position:absolute; font-size:10px; color:rgba(255,255,255,0.3); left:' + l.x + 'px; top:' + l.y + 'px; pointer-events:none;';
+                lbl.textContent = l.text;
+                map.appendChild(lbl);
+            });
+            
+            var targets = [
+                { emoji: '📍', x: 290, y: 70 },
+                { emoji: '🏕️', x: 150, y: 190 },
+                { emoji: '🚗', x: 420, y: 280 },
+            ];
+            
+            targets.forEach(function(t, i) {
+                var target = document.createElement('div');
+                target.className = 'map-target';
+                target.style.left = t.x + 'px';
+                target.style.top = t.y + 'px';
+                target.textContent = t.emoji;
+                target.onclick = function() { clickTarget(target, i); };
+                map.appendChild(target);
+            });
+            
+            var seconds = 0;
+            clearInterval(survTimerInterval);
+            survTimerInterval = setInterval(function() {
+                seconds++;
+                var h = String(Math.floor(seconds/3600)).padStart(2,'0');
+                var m = String(Math.floor((seconds%3600)/60)).padStart(2,'0');
+                var s = String(seconds%60).padStart(2,'0');
+                document.getElementById('survTime').textContent = h+':'+m+':'+s;
+            }, 1000);
+            
+            document.getElementById('survLog').innerHTML = '';
+            addLog('Система наблюдения активирована');
+            addLog('Майский С.М. на связи. Сканирую территорию...');
+        }
+        
+        function clickTarget(el, idx) {
+            if (el.style.opacity === '0') return;
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+            survTargetsFound++;
+            
+            var messages = [
+                'Обнаружена точка сбора у воды!',
+                'Замечен лагерь с оборудованием!',
+                'Найдена машина подозреваемого на парковке!'
+            ];
+            
+            addLog(messages[idx], 'alert');
+            showNotification('ОБЪЕКТ НАЙДЕН', messages[idx]);
+            
+            if (survTargetsFound >= 3) {
+                clearInterval(survTimerInterval);
+                addLog('Все объекты обнаружены. Передаю данные...');
+                setTimeout(function() {
+                    addLog('Данные переданы судмедэксперту Антоновой.', 'success');
+                    setTimeout(function() { goToScreen('screen-antonova'); }, 1500);
+                }, 1000);
+            }
+        }
+        
+        function addLog(text, type) {
+            var log = document.getElementById('survLog');
+            var entry = document.createElement('div');
+            entry.className = 'log-entry' + (type ? ' ' + type : '');
+            var now = new Date();
+            entry.innerHTML = '<span class="time">' + now.toLocaleTimeString() + '</span>' + text;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // ===== 6: ODD ONE OUT =====
+        function initOddOneOut() {
+            oddRound = 0;
+            document.getElementById('oddTotal').textContent = oddRounds.length;
+            renderOddRound();
+        }
+        
+        function renderOddRound() {
+            if (oddRound >= oddRounds.length) {
+                showNotification('ВСЕ РАУНДЫ ПРОЙДЕНЫ', 'Антонова: "Отлично! Рюкзак собран. Подозреваемый точно едет на воду!"');
+                setTimeout(function() { goToScreen('screen-city2'); }, 2000);
+                return;
+            }
+            
+            var round = oddRounds[oddRound];
+            document.getElementById('oddRound').textContent = oddRound + 1;
+            document.getElementById('oddQuestion').textContent = round.question;
+            document.getElementById('oddFeedback').textContent = '';
+            
+            var container = document.getElementById('oddItems');
+            container.innerHTML = '';
+            
+            var shuffled = round.items.slice().sort(function() { return Math.random() - 0.5; });
+            
+            shuffled.forEach(function(item) {
+                var div = document.createElement('div');
+                div.className = 'odd-item';
+                div.innerHTML = '<span class="odd-emoji">' + item.emoji + '</span><span class="odd-label">' + item.label + '</span>';
+                div.onclick = function() { pickOddItem(div, item, round); };
+                container.appendChild(div);
+            });
+        }
+        
+        function pickOddItem(el, item, round) {
+            document.querySelectorAll('.odd-item').forEach(function(i) { i.style.pointerEvents = 'none'; });
+            
+            if (item.isOdd) {
+                el.classList.add('correct-pick');
+                document.getElementById('oddFeedback').innerHTML = '<span style="color:#27ae60;">✓ ' + round.feedback + '</span>';
+                showNotification('ВЕРНО', 'Лишний предмет найден!');
+                
+                setTimeout(function() {
+                    oddRound++;
+                    renderOddRound();
+                }, 1800);
+            } else {
+                el.classList.add('wrong-pick');
+                document.getElementById('oddFeedback').innerHTML = '<span style="color:#e74c3c;">❌ Не этот! Подумай ещё — что здесь лишнее?</span>';
+                
+                setTimeout(function() {
+                    el.classList.remove('wrong-pick');
+                    document.querySelectorAll('.odd-item').forEach(function(i) { i.style.pointerEvents = 'auto'; });
+                }, 1000);
+            }
+        }
+        
+        // ===== 7: CITY GUESS #2 =====
+        function initCity2() {
+            var cities = ['Дмитров', 'Талдом', 'Дубна', 'Клин', 'Волоколамск'];
+            var container = document.getElementById('city2Buttons');
+            container.innerHTML = '';
+            document.getElementById('city2Result').textContent = 'Выберите вариант...';
+            document.getElementById('city2Next').style.display = 'none';
+            
+            var rejected = 0;
+            
+            cities.forEach(function(city) {
+                var btn = document.createElement('button');
+                btn.className = 'city-btn';
+                btn.textContent = city;
+                btn.onclick = function() {
+                    btn.classList.add('rejected');
+                    rejected++;
+                    
+                    var responses = {
+                        'Дмитров': 'Нет! Дмитров — красивый город, но не наш случай.',
+                        'Талдом': 'Не-а! Талдом — мимо. Подозреваемый едет не туда.',
+                        'Дубна': 'Мимо! Дубна — наукоград, но не для нашего дела.',
+                        'Клин': 'Нет! Клин — не тот город. Ищите дальше!',
+                        'Волоколамск': 'Тоже нет! Волоколамск — не наш вариант.'
+                    };
+                    
+                    document.getElementById('city2Result').innerHTML = '<span style="color:#e74c3c;">❌ ' + responses[city] + '</span>';
+                    
+                    if (rejected >= 3) {
+                        setTimeout(function() {
+                            document.getElementById('city2Result').innerHTML = '<span style="color:#f39c12;">🤔 Опять не город? Странно... Может, он вообще никуда не едет? Или едет, но не в город? Ладно, идём дальше.</span>';
+                            document.getElementById('city2Next').style.display = 'inline-block';
+                        }, 1500);
+                    }
+                };
+                container.appendChild(btn);
+            });
+            
+            document.getElementById('city2Next').onclick = function() {
+                goToScreen('screen-chat');
+            };
+        }
+        
+        // ===== 8: CHAT =====
+        var chatMessages = [
+            { type: 'incoming', text: 'Следователь, я перехватила его переписку. Он общается с кем-то про выходные.', delay: 0 },
+            { type: 'incoming', text: 'Вот что он пишет: "Готовься, будет круто! Возьми одежду, которую не жалко намочить."', delay: 1800 },
+            { type: 'incoming', text: '"Надуем что-то на месте. Вёсла будут."', delay: 3600 },
+            { type: 'incoming', text: '"Встречаемся рано утром. Закат будем смотреть с воды 🌅"', delay: 5400 },
+        ];
+        
+        function initChat() {
+            var container = document.getElementById('chatContainer');
+            container.innerHTML = '';
+            document.getElementById('chatChoices').style.display = 'none';
+            document.getElementById('chatChoices').innerHTML = '';
+            
+            chatMessages.forEach(function(msg, i) {
+                setTimeout(function() {
+                    var div = document.createElement('div');
+                    div.className = 'phone-message ' + msg.type;
+                    div.textContent = msg.text;
+                    container.appendChild(div);
+                    container.scrollTop = container.scrollHeight;
+                    
+                    if (i === chatMessages.length - 1) {
+                        setTimeout(function() { showChatChoices(); }, 1200);
+                    }
+                }, msg.delay);
+            });
+        }
+        
+        function showChatChoices() {
+            var choices = document.getElementById('chatChoices');
+            choices.style.display = 'flex';
+            choices.innerHTML = '';
+            
+            var options = [
+                '«Надуем? Это что, батут?»',
+                '«Вёсла? Это лодки?»',
+                '«С воды закат? Это на берегу?»'
+            ];
+            
+            options.forEach(function(opt, idx) {
+                var btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = opt;
+                btn.onclick = function() { handleChatChoice(idx); };
+                choices.appendChild(btn);
+            });
+        }
+        
+        function handleChatChoice(idx) {
+            var container = document.getElementById('chatContainer');
+            var choices = document.getElementById('chatChoices');
+            choices.style.display = 'none';
+            
+            var responses = [
+                [
+                    { type: 'outgoing', text: 'Надуем? Это что, батут?' },
+                    { type: 'incoming', text: 'Гордеева: "Нет, не батут! Он написал: \'надувные доски\'. Это что-то типа... плавсредства? Но не лодка."' },
+                    { type: 'incoming', text: 'Гордеева: "Я загуглила. Есть такая штука — SUP-доска. Надувная. Стоишь на ней и гребешь веслом."' },
+                ],
+                [
+                    { type: 'outgoing', text: 'Вёсла? Это лодки?' },
+                    { type: 'incoming', text: 'Гордеева: "Не совсем лодки. Он написал \'гребля\', но не байдарки. Что-то другое..."' },
+                    { type: 'incoming', text: 'Гордеева: "Подождите... Есть вид спорта, где стоят на доске и гребут. Называется... SUP!"' },
+                ],
+                [
+                    { type: 'outgoing', text: 'С воды закат? Это на берегу?' },
+                    { type: 'incoming', text: 'Гордеева: "Нет, он написал именно \'С ВОДЫ\'. То есть он будет НА воде. Не на берегу."' },
+                    { type: 'incoming', text: 'Гордеева: "Это что-то вроде... катания по воде? На доске? Я кажется начинаю понимать..."' },
+                ]
+            ];
+            
+            var msgs = responses[idx];
+            msgs.forEach(function(msg, i) {
+                setTimeout(function() {
+                    var div = document.createElement('div');
+                    div.className = 'phone-message ' + msg.type;
+                    div.textContent = msg.text;
+                    container.appendChild(div);
+                    container.scrollTop = container.scrollHeight;
+                    
+                    if (i === msgs.length - 1) {
+                        setTimeout(function() {
+                            showNotification('ПЕРЕХОД', 'Гордеева передаёт данные Белой для баллистической экспертизы...');
+                            setTimeout(function() { goToScreen('screen-memory'); }, 1500);
+                        }, 1500);
+                    }
+                }, i * 1800);
+            });
+        }
+        
+        // ===== 9: MEMORY =====
+        var memoryPairs = [
+            { emoji: '🏄', id: 1 },
+            { emoji: '🌊', id: 2 },
+            { emoji: '🛶', id: 3 },
+            { emoji: '☀️', id: 4 },
+            { emoji: '🦺', id: 5 },
+            { emoji: '🌅', id: 6 },
+        ];
+        
+        function initMemory() {
+            var grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            memoryFlipped = [];
+            memoryMatched = 0;
+            memoryLocked = false;
+            document.getElementById('memoryPairs').textContent = '0';
+            document.getElementById('memoryTotal').textContent = memoryPairs.length;
+            
+            var cards = [];
+            memoryPairs.forEach(function(pair) {
+                cards.push({ emoji: pair.emoji, id: pair.id });
+                cards.push({ emoji: pair.emoji, id: pair.id });
+            });
+            cards.sort(function() { return Math.random() - 0.5; });
+            
+            cards.forEach(function(card, idx) {
+                var div = document.createElement('div');
+                div.className = 'memory-card';
+                div.setAttribute('data-id', card.id);
+                div.setAttribute('data-idx', idx);
+                div.innerHTML = '<span class="card-back">?</span><span class="card-face">' + card.emoji + '</span>';
+                div.onclick = function() { flipCard(div); };
+                grid.appendChild(div);
+            });
+        }
+        
+        function flipCard(el) {
+            if (memoryLocked) return;
+            if (el.classList.contains('flipped') || el.classList.contains('matched')) return;
+            
+            el.classList.add('flipped');
+            memoryFlipped.push(el);
+            
+            if (memoryFlipped.length === 2) {
+                memoryLocked = true;
+                var card1 = memoryFlipped[0];
+                var card2 = memoryFlipped[1];
+                
+                if (card1.getAttribute('data-id') === card2.getAttribute('data-id')) {
+                    setTimeout(function() {
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        memoryMatched++;
+                        document.getElementById('memoryPairs').textContent = memoryMatched;
+                        memoryFlipped = [];
+                        memoryLocked = false;
+                        
+                        if (memoryMatched >= memoryPairs.length) {
+                            showNotification('ВСЕ ПАРЫ НАЙДЕНЫ', 'Белая: "Шифр раскрыт! Все слова связаны с водой и активным отдыхом!"');
+                            setTimeout(function() { goToScreen('screen-city3'); }, 2000);
+                        }
+                    }, 500);
+                } else {
+                    setTimeout(function() {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        memoryFlipped = [];
+                        memoryLocked = false;
+                    }, 800);
+                }
+            }
+        }
+        
+        // ===== 10: CITY GUESS #3 =====
+        function initCity3() {
+            var cities = ['Можайск', 'Руза', 'Истра', 'Озёры', 'Луховицы'];
+            var container = document.getElementById('city3Buttons');
+            container.innerHTML = '';
+            document.getElementById('city3Result').textContent = 'Выберите вариант...';
+            document.getElementById('city3Next').style.display = 'none';
+            
+            var rejected = 0;
+            
+            cities.forEach(function(city) {
+                var btn = document.createElement('button');
+                btn.className = 'city-btn';
+                btn.textContent = city;
+                btn.onclick = function() {
+                    btn.classList.add('rejected');
+                    rejected++;
+                    
+                    var responses = {
+                        'Можайск': 'Нет! Можайск — не наш город.',
+                        'Руза': 'Не-а! Руза — мимо.',
+                        'Истра': 'Мимо! Истра — не то.',
+                        'Озёры': 'Нет! Озёры — не наш вариант.',
+                        'Луховицы': 'Тоже нет! Луховицы — не тот город.'
+                    };
+                    
+                    document.getElementById('city3Result').innerHTML = '<span style="color:#e74c3c;">❌ ' + responses[city] + '</span>';
+                    
+                    if (rejected >= 3) {
+                        setTimeout(function() {
+                            document.getElementById('city3Result').innerHTML = '<span style="color:#f39c12;">🤔 СТОП. Третий раз — и снова не город. Может... это вообще НЕ поездка в город? Может, это что-то совсем другое? Пора взламывать шифр!</span>';
+                            document.getElementById('city3Next').style.display = 'inline-block';
+                        }, 1500);
+                    }
+                };
+                container.appendChild(btn);
+            });
+            
+            document.getElementById('city3Next').onclick = function() {
+                goToScreen('screen-codebreak');
+            };
+        }
+        
+        // ===== 11: CODE BREAK =====
+        function initCodeBreak() {
+            var inputs = document.querySelectorAll('#codeInputRow .code-input');
+            inputs.forEach(function(inp) {
+                inp.value = '';
+                inp.classList.remove('correct-char');
+                inp.oninput = function(e) { handleCodeInput(e); };
+            });
+            inputs[0].focus();
+            
+            document.getElementById('codeCheckBtn').onclick = function() { checkCode(); };
+        }
+        
+        function handleCodeInput(e) {
+            var inputs = document.querySelectorAll('#codeInputRow .code-input');
+            var idx = parseInt(e.target.getAttribute('data-index'));
+            
+            if (e.target.value && idx < 4) {
+                inputs[idx + 1].focus();
+            }
+        }
+        
+        function checkCode() {
+            var inputs = document.querySelectorAll('#codeInputRow .code-input');
+            var code = '';
+            inputs.forEach(function(inp) { code += inp.value.toUpperCase(); });
+            
+            var valid = false;
+            if (code.length === 3 && code === 'SUP') valid = true;
+            if (code.indexOf('SUP') !== -1 || code.indexOf('САП') !== -1) valid = true;
+            
+            if (valid) {
+                inputs.forEach(function(inp) { inp.classList.add('correct-char'); });
+                showNotification('ШИФР ВЗЛОМАН!', 'Тихонов: "Это SUP! Сапы! Он планирует SUP-сплав!"');
+                document.getElementById('codeHint2').textContent = '✓ Код разгадан: SUP! Переход к финалу...';
+                document.getElementById('codeHint2').style.color = '#27ae60';
+                setTimeout(function() { goToScreen('screen-timeline'); }, 2500);
+            } else if (code.length >= 3) {
+                showNotification('НЕВЕРНО', 'Попробуйте ещё. Подсказка: 3 буквы на английском. S-U-...');
+                inputs.forEach(function(inp) {
+                    inp.style.borderColor = '#e74c3c';
+                    setTimeout(function() { inp.style.borderColor = '#444'; }, 500);
+                });
+            }
+        }
+        
+        // ===== 12: TIMELINE =====
+        var timelineItems = [
+            { time: 'Этап 1', text: 'Тихонов нашёл поисковые запросы про SUP-доски и сплав' },
+            { time: 'Этап 2', text: 'Обнаружены улики: жилет, крем от загара, сандали' },
+            { time: 'Этап 3', text: 'Города не подходят — Коломна, Серпухов, Дмитров — всё мимо' },
+            { time: 'Этап 4', text: 'Майский нашёл точки у воды — база, лагерь, парковка' },
+            { time: 'Этап 5', text: 'Антонова разобрала рюкзак: всё для водного отдыха' },
+            { time: 'Этап 6', text: 'Гордеева перехватила: "надувные доски", "вёсла", "закат с воды"' },
+            { time: 'Этап 7', text: 'Белая раскрыла пары: всё связано с SUP' },
+            { time: 'Этап 8', text: 'Тихонов взломал шифр: SUP!' },
+        ];
+        
+        function initTimeline() {
+            var container = document.getElementById('timeline');
+            container.innerHTML = '';
+            timelineResolved = 0;
+            document.getElementById('timelineNext').style.display = 'none';
+            
+            timelineItems.forEach(function(item, idx) {
+                var div = document.createElement('div');
+                div.className = 'timeline-item';
+                div.innerHTML = '<div class="tl-time mono">' + item.time + '</div><div class="tl-text">' + item.text + '</div>';
+                div.onclick = function() {
+                    if (div.classList.contains('resolved')) return;
+                    div.classList.add('resolved');
+                    timelineResolved++;
+                    
+                    if (timelineResolved >= timelineItems.length) {
+                        setTimeout(function() {
+                            document.getElementById('timelineNext').style.display = 'inline-block';
+                            showNotification('ВСЕ ЭТАПЫ ПРОЙДЕНЫ', 'Рогозина: "Дело готово к раскрытию. Приступайте!"');
+                        }, 500);
+                    }
+                };
+                container.appendChild(div);
+            });
+            
+            document.getElementById('timelineNext').onclick = function() {
+                goToScreen('screen-final');
+            };
+        }
+        
+        // ===== 13: FINAL =====
+        function initFinal() {
+            document.getElementById('finalTitle').textContent = 'Подождите...';
+            document.getElementById('finalLetter').style.display = 'none';
+            document.getElementById('finalInvitation').style.display = 'none';
+            noClickCount = 0;
+            
+            setTimeout(function() {
+                document.getElementById('finalTitle').textContent = 'Что?!';
+            }, 1500);
+            
+            setTimeout(function() {
+                document.getElementById('finalTitle').textContent = 'Это НЕ поездка в город?!';
+            }, 3000);
+            
+            setTimeout(function() {
+                document.getElementById('finalTitle').innerHTML = '🏄‍♀️ ЭТО SUP-СПЛАВ! 🏄‍♂️';
+                document.getElementById('finalTitle').style.animation = 'pulse 1s infinite';
+            }, 4500);
+            
+            setTimeout(function() {
+                document.getElementById('finalLetter').style.display = 'block';
+            }, 5500);
+            
+            setTimeout(function() {
+                document.getElementById('finalInvitation').style.display = 'block';
+                
+                document.getElementById('btnYes').onclick = function() { sayYes(); };
+                document.getElementById('btnNo').onclick = function() { sayNo(); };
+            }, 6500);
+        }
+        
+        function sayYes() {
+            goToScreen('screen-celebration');
+            setTimeout(launchConfetti, 500);
+        }
+        
+        function sayNo() {
+            noClickCount++;
+            var btn = document.getElementById('btnNo');
+            
+            var messages = [
+                'Ты уверена? Подумай ещё раз! 🥺',
+                'Серьёзно? Там будет так круто!',
+                'Ладно... но я не сдаюсь! 😄',
+                'Ну пожааалуйста! 🙏',
+                'Я буду рядом и помогу тебе держаться! 🤝',
+                'Это будет лучший выходной!',
+                'Окей, последний аргумент: ЗАКАТ НА РЕКЕ 🌅',
+            ];
+            
+            if (noClickCount <= messages.length) {
+                btn.textContent = messages[noClickCount - 1];
+                btn.style.animation = 'shake 0.5s';
+                setTimeout(function() { btn.style.animation = ''; }, 500);
+                
+                if (noClickCount >= messages.length) {
+                    btn.textContent = 'Ну ладно... ДА! 😄';
+                    btn.onclick = function() { sayYes(); };
+                    btn.style.borderColor = '#27ae60';
+                    btn.style.color = '#27ae60';
+                }
+            }
+        }
+        
+        // ===== CELEBRATION =====
+        function launchConfetti() {
+            var colors = ['#e74c3c','#f39c12','#27ae60','#3498db','#9b59b6','#1abc9c','#e91e63'];
+            
+            for (var i = 0; i < 80; i++) {
+                setTimeout(function(i) {
+                    return function() {
+                        var confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.style.left = Math.random() * 100 + 'vw';
+                        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                        confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                        document.body.appendChild(confetti);
+                        
+                        setTimeout(function() { confetti.remove(); }, 5000);
+                    };
+                }(i), i * 50);
+            }
+        }
+        
+        // ===== KEYBOARD =====
+        document.addEventListener('keydown', function(e) {
+            if (currentScreen === 'screen-codebreak' && e.key === 'Enter') {
+                checkCode();
+            }
+        });
+        
+        // ===== INIT =====
+        window.addEventListener('load', function() {
+            startLoading();
+        });
+    </script>
+</body>
+</html>
